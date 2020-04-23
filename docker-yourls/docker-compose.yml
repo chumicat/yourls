@@ -1,0 +1,52 @@
+version: '3'
+
+networks:
+  yourls-network:
+    driver: bridge
+
+services:
+    php-fpm:
+        build: ./php-fpm
+        environment:
+            - YOURLS_DB_USER=${YOURLS_DB_USER}
+            - YOURLS_DB_PASS=${YOURLS_DB_PASS}
+            - YOURLS_DB_NAME=${YOURLS_DB_NAME}
+            - YOURLS_DB_HOST=${YOURLS_DB_HOST}
+            - YOURLS_DB_PREFIX=${YOURLS_DB_PREFIX}
+            - YOURLS_SITE=${YOURLS_SITE}
+            - YOURLS_HOURS_OFFSET=${YOURLS_HOURS_OFFSET}
+            - YOURLS_LANG=${YOURLS_LANG}
+            - YOURLS_UNIQUE_URLS=${YOURLS_UNIQUE_URLS}
+            - YOURLS_PRIVATE=${YOURLS_PRIVATE}
+            - YOURLS_COOKIEKEY=${YOURLS_COOKIEKEY}
+            - YOURLS_ADMIN_USERNAME=${YOURLS_ADMIN_USERNAME}
+            - YOURLS_ADMIN_PASSWORD=${YOURLS_ADMIN_PASSWORD}
+            - YOURLS_DEBUG=${YOURLS_DEBUG}
+            - YOURLS_URL_CONVERT=${YOURLS_URL_CONVERT}
+        volumes:
+            - ../YOURLS:/var/www/html
+        networks:
+            - yourls-network
+    nginx:
+        image: nginx
+        ports:
+            - 80:80
+        volumes:
+            - ../YOURLS:/var/www/html
+            - ./ngnix/sites:/etc/nginx/conf.d/
+        networks:
+            - yourls-network
+    mysql:
+        image: mysql
+        environment:
+            - MYSQL_DATABASE=${MYSQL_DATABASE}
+            - MYSQL_USER=${MYSQL_USER}
+            - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+            - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+        volumes:
+            - ./mysql/data:/var/lib/mysql
+            - ./mysql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+        ports:
+            - ${MYSQL_PORT}:3306
+        networks:
+            - yourls-network
